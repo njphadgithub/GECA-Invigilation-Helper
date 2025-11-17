@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invigilation Duty Timetable (ESE Nov-Dec 2025)</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* Custom styles */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f7f6; /* A light, professional gray-green */
+        }
+        .tab-btn {
+            @apply py-4 px-6 text-lg font-medium text-center text-gray-500 rounded-t-lg border-b-2 border-gray-300 bg-gray-100;
+            @apply hover:text-gray-800 hover:bg-gray-200 transition-all;
+        }
+        .tab-btn.active {
+            @apply text-blue-700 font-semibold border-b-4 border-blue-600 bg-white; /* Bolder text, thicker border */
+        }
+        .duty-card {
+            @apply bg-white shadow-lg rounded-xl p-6 mb-6 border border-gray-200 transition-all duration-300;
+        }
+        .duty-card-header {
+            @apply flex justify-between items-center mb-4 pb-4 border-b border-gray-200;
+        }
+        .duty-date {
+            @apply text-2xl font-bold text-blue-800;
+        }
+        /* Updated session colors for more distinction */
+        .duty-session-morning {
+            @apply text-xl font-semibold text-white bg-blue-600 rounded-full px-5 py-2;
+        }
+        .duty-session-afternoon {
+            @apply text-xl font-semibold text-white bg-orange-600 rounded-full px-5 py-2;
+        }
+        .duty-time {
+            @apply text-lg text-gray-700 font-medium;
+        }
+        .btn-primary {
+            @apply bg-blue-600 text-white font-semibold py-2 px-5 rounded-lg shadow-md;
+            @apply hover:bg-blue-700 transition-all duration-300 ease-in-out;
+            @apply transform hover:-translate-y-0.5;
+        }
+        /* Green button for "Add to Calendar" */
+        .btn-secondary {
+            @apply bg-green-600 text-white font-semibold py-2 px-5 rounded-lg shadow-md;
+            @apply hover:bg-green-700 transition-all duration-300 ease-in-out;
+            @apply transform hover:-translate-y-0.5;
+        }
+        .form-select {
+            @apply w-full p-3 border border-gray-300 rounded-lg bg-white shadow-sm;
+            @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent;
+        }
+        /* Message box styles */
+        #message-box {
+            @apply fixed top-5 right-5 p-4 rounded-lg shadow-xl text-white z-50;
+            @apply transition-all duration-300 ease-in-out;
+            transform: translateX(150%);
+            opacity: 0;
+        }
+        #message-box.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <!-- Message Box -->
+    <div id="message-box"></div>
+
+    <div class="container mx-auto p-4 md:p-8 max-w-5xl">
+        
+        <!-- Header -->
+        <header class="bg-gradient-to-r from-blue-800 to-blue-600 text-white p-6 md:p-8 rounded-xl shadow-2xl mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold">Invigilation Duty Timetable</h1>
+            <p class="text-lg md:text-xl text-blue-100 mt-1">End Semester Examination (Nov-Dec 2025)</p>
+        </header>
+
+        <!-- Tab Navigation -->
+        <div class="mb-4 border-b border-gray-200">
+            <ul class="flex flex-wrap -mb-px">
+                <li class="mr-2">
+                    <button class="tab-btn active" onclick="showTab('mySchedule')">My Schedule</button>
+                </li>
+                <li class="mr-2">
+                    <button class="tab-btn" onclick="showTab('findBySession')">Find by Session</button>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Tab 1: My Schedule -->
+        <div id="mySchedule" class="tab-content">
+            <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+                <label for="invigilator-select" class="block text-lg font-semibold text-gray-800 mb-3">Select Your Name</label>
+                <div class="flex flex-col md:flex-row md:space-x-4 space-y-4 md:space-y-0">
+                    <select id="invigilator-select" class="form-select flex-grow">
+                        <option value="">-- Please select your name --</option>
+                        <!-- Names will be populated by JS -->
+                    </select>
+                    <button id="find-duties-btn" class="btn-primary px-8">Find My Duties</button>
+                </div>
+            </div>
+            
+            <div id="schedule-container">
+                <!-- Personalized schedule will be injected here -->
+                <p class="text-center text-gray-500 text-lg p-6 bg-white rounded-lg shadow-md">Your duties will appear here once you select your name and click "Find".</p>
+            </div>
+        </div>
+
+        <!-- Tab 2: Find by Session -->
+        <div id="findBySession" class="tab-content hidden">
+            <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label for="date-select" class="block text-lg font-semibold text-gray-800 mb-3">Select Date</label>
+                        <select id="date-select" class="form-select">
+                            <!-- Dates will be populated by JS -->
+                        </select>
+                    </div>
+                    <div>
+                        <label for="session-select" class="block text-lg font-semibold text-gray-800 mb-3">Select Session</label>
+                        <select id="session-select" class="form-select">
+                            <option value="Morning">Morning (10:00 AM)</option>
+                            <option value="Afternoon">Afternoon (2:00 PM)</option>
+                        </select>
+                    </div>
+                    <div class="md:self-end">
+                        <button id="find-invigilators-btn" class="btn-primary w-full">Find Invigilators</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="session-invigilators-list" class="bg-white p-6 rounded-lg shadow-md">
+                 <p class="text-center text-gray-500 text-lg">The list of invigilators for the selected session will appear here.</p>
+                 <!-- Invigilator list will be injected here -->
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="text-center text-gray-500 text-sm mt-12 mb-4">
+            <p>&copy; 2025 | App created by Prof Nitin Phadkule</p>
+        </footer>
+
+    </div>
+
+    <script>
+        let messageTimeout;
+
+        /**
+         * Utility function to show a temporary message.
+         */
+        function showMessage(message, isError = false) {
+            const messageBox = document.getElementById('message-box');
+            messageBox.textContent = message;
+            // Clear existing color classes
+            messageBox.classList.remove('bg-red-600', 'bg-green-600');
+            // Add new color class
+            if (isError) {
+                messageBox.classList.add('bg-red-600');
+            } else {
+                messageBox.classList.add('bg-green-600');
+            }
+            messageBox.classList.add('show');
+
+            clearTimeout(messageTimeout);
+            messageTimeout = setTimeout(() => {
+                messageBox.classList.remove('show');
+            }, 3000);
+        }
+
+        // --- Event Listeners ---
+        document.getElementById('find-duties-btn').onclick = findMyDuties;
+        document.getElementById('find-invigilators-btn').onclick = findSessionInvigilators;
+
+
+        // --- Data Parsing and Setup ---
+
+        /**
+         * This data is manually parsed from the provided PDF text.
+         */
+        const rawScheduleData = [
+            { date: "15/11/2025", morning: ["Prof. Nilakshi Mule", "Dr. R. K. Shrivastav", "Dr. G. K. Patil", "Dr. K. P. Wagh", "Dr. Sanjay Thakre", "Dr. Shyam Sonawane", "Prof. Advait Joshi", "Prof. N. R. Gotarkar", "Prof. Kiran Sonkamble"], afternoon: ["Prof. Advait Joshi", "Dr. P. C. Shetiye", "Dr. A. K. Gulve"] },
+            { date: "17/11/2025", morning: ["Dr. G. K. Patil", "Dr. S. S. Mopari", "Dr. U. V. Humbire", "Prof. Nilakshi Mule", "Dr. K. P. Wagh", "Prof. Humera Anjum", "Dr. P. C. Shetiye", "Dr. A. K. Gulve", "Dr. Sanjay Thakre", "Dr. Shyam Sonawane", "Prof. Rahul Mannade", "Prof. N. R. Gotarkar", "Prof. Mayuri Padghan"], afternoon: ["Dr. Smita Chavan", "Prof. M. R. Bachawad", "Dr. M. S. Harne", "Dr. S. S. Koranne", "Prof. Poonam Pophalkar"] },
+            { date: "18/11/2025", morning: ["Dr. S. S. Mopari", "Dr. Smita Chavan", "Dr. U. V. Humbire", "Dr. Dilip Uike", "Prof. M. R. Bachawad", "Dr. M. S. Harne", "Dr. S. S. Agrawal", "Dr. Archana Bhade", "Dr. S. D. Bharkad", "Dr. Y. M. Ghugal", "Prof. Rohini Mundhe", "Dr. S. S. Dambhare", "Dr. S. D. Sapkal", "Prof. Nilakshi Mule", "Dr. A. K. Gulve"], afternoon: [] },
+            { date: "19/11/2025", morning: ["Dr. S. S. Mopari", "Dr. U. V. Humbire", "Dr. Dilip Uike", "Dr. S. S. Agrawal", "Dr. K. S. Sharma", "Prof. S. T. Patil", "Dr. Y. M. Ghugal", "Prof. Rohini Mundhe", "Prof. Humera Anjum", "Dr. S. D. Sapkal", "Dr. K. P. Wagh", "Prof. Pranjali Waghmare", "Dr. Archana Bhade", "Prof. N. R. Gotarkar", "Dr. K. C. Raipurkar", "Prof. Rahul Mannade", "Dr. S. B. Chikalthankar", "Prof. Jagruti Patil"], afternoon: ["Prof. Ketaki Deshpande", "Prof. M. R. Bachawad", "Dr. M. S. Harne", "Dr. S. D. Bharkad", "Dr. S. S. Koranne"] },
+            { date: "20/11/2025", morning: ["Dr. Dilip Uike", "Dr. S. S. Agrawal", "Dr. S. D. Bharkad", "Dr. Y. M. Ghugal", "Prof. Rohini Mundhe", "Dr. S. D. Sapkal", "Prof. Rahul Mannade", "Dr. K. S. Sharma", "Dr. S. D. Ambekar", "Dr. K. C. Raipurkar", "Dr. U. N. Shete", "Dr. A. M. Nikalje", "Prof. A. S. Kausal"], afternoon: [] },
+            { date: "21/11/2025", morning: ["Dr. N. R. Bhasme", "Prof. Atul Chaudhari", "Prof. P. S. Vispute", "Prof. Pranjali Waghmare", "Prof. Vikas Gambhire", "Dr. A. R. Karwankar", "Dr. Sarika Gharad", "Dr. K. C. Raipurkar", "Prof. Lajari Patil", "Dr. A. M. Nikalje", "Prof. A. S. Kausal", "Dr. S. B. Chikalthankar", "Dr. N. J. Phadkule", "Prof. S. P. Vasekar"], afternoon: ["Prof. S. T. Patil", "Prof. Poonam Pophalkar", "Prof. Shahna Sayeda", "Dr. K. S. Sharma", "Prof. Vishvesh Koranne", "Dr. U. N. Shete", "Dr. S. D. Ambekar", "Dr. N. R. Bhasme", "Dr. S. R. Hirekhan"] },
+            { date: "24/11/2025", morning: ["Prof. Shalini Mundhe", "Prof. Ameya Bikkad", "Prof. P. S. Vispute", "Prof. Pranjali Waghmare", "Dr. S. R. Hirekhan", "Prof. Shraddha Patil", "Prof. Vishvesh Koranne", "Dr. Sarika Gharad", "Prof. Lajari Patil", "Dr. Y. U. Sathe", "Prof. A. S. Kausal", "Dr. N. J. Phadkule"], afternoon: [] },
+            { date: "25/11/2025", morning: ["Prof. Ameya Bikkad", "Prof. P. S. Vispute", "Prof. Vikas Gambhire", "Prof. Shivani Deshmukh", "Dr. Y. U. Sathe", "Prof. S. S. Chaudhari", "Dr. N. J. Phadkule", "Prof. S. P. Vasekar", "Prof. B. T. Deshmukh", "Dr. Sanjay Thakre", "Dr. Devidas Gore", "Prof. Prachi Bhagat", "Prof. Varsha Patil", "Prof. Sandip Mokale", "Prof. Rupali Patil", "Prof. Sukheshini Jadhav", "Prof. Atul Chaudhari"], afternoon: ["Prof. Shalini Mundhe", "Prof. Shahna Sayeda", "Prof. Tanaya Jadhav", "Prof. Shraddha Patil", "Prof. Jagruti Patil", "Dr. Sarika Gharad", "Dr. U. N. Shete", "Dr. A. R. Karwankar", "Prof. V. A. Chakkarwar", "Prof. V. A. Injamuri", "Prof. Anuradha Bhusari"] },
+            { date: "26/11/2025", morning: ["Prof. Ameya Bikkad", "Prof. Shital Gundre", "Prof. Shalini Mundhe", "Prof. S. T. Patil", "Prof. Vikas Gambhire", "Prof. V. A. Chakkarwar", "Prof. S. S. Chaudhari", "Dr. S. S. Kulkarni", "Dr. Archana Bhade", "Prof. B. T. Deshmukh", "Prof. Shweta Aadhave", "Prof. Abhijeet Mohan", "Prof. Amol Metangale"], afternoon: [] },
+            { date: "27/11/2025", morning: ["Prof. Shital Gundre", "Prof. Hashmi Matiba", "Prof. Neha Chaudhari", "Prof. Shivani Deshmukh", "Prof. S. S. Chaudhari", "Dr. S. S. Kulkarni", "Prof. B. T. Deshmukh", "Prof. Shweta Aadhave", "Prof. Abhijeet Mohan", "Prof. Amol Metangale", "Dr. Devidas Gore", "Prof. Prachi Bhagat", "Prof. Varsha Patil", "Prof. Sandip Mokale", "Prof. Rupali Patil", "Prof. Sukheshini Jadhav"], afternoon: ["Prof. Shalini Mundhe", "Prof. Shahna Sayeda", "Prof. Tanaya Jadhav", "Prof. Shraddha Patil", "Prof. Ganga Dhole"] },
+            { date: "28/11/2025", morning: ["Prof. Shital Gundre", "Prof. Rushikesh Walunj", "Prof. Neha Chaudhari", "Prof. Shivani Deshmukh", "Dr. S. S. Kulkarni", "Prof. Shweta Aadhave", "Prof. Abhijeet Mohan", "Prof. Amol Metangale", "Dr. Devidas Gore", "Prof. Prachi Bhagat"], afternoon: [] },
+            { date: "29/11/2025", morning: ["Prof. Aarti Lohade", "Prof. Rushikesh Walunj", "Prof. Divya Nagkirti", "Prof. Neha Chaudhari", "Prof. Abhijeet Mohan", "Prof. Amol Metangale", "Prof. Varsha Patil", "Prof. Sandip Mokale", "Prof. Rupali Patil", "Prof. Sukheshini Jadhav", "Prof. Aaditya Sharma", "Prof. Mayuri Padghan", "Prof. Yasin Basit", "Prof. Ketaki Deshpande", "Prof. Anuradha Bhusari"], afternoon: ["Prof. Archan Agrawal", "Prof. Ganga Dhole", "Dr. Murhari Kele", "Dr. V. R. Ratnparkhe", "Prof. V. A. Chakkarwar", "Prof. V. A. Injamuri"] },
+            { date: "01/12/2025", morning: ["Prof. Aarti Lohade", "Dr. Uttam Kalwane", "Prof. Rushikesh Walunj", "Prof. Divya Nagkirti", "Prof. Neha Chaudhari", "Prof. J. Rana"], afternoon: [] },
+            { date: "02/12/2025", morning: ["Prof. Aarti Lohade", "Dr. Uttam Kalwane", "Prof. Divya Nagkirti", "Prof. J. Rana", "Prof. Varsha Patil", "Prof. Rupali Patil", "Prof. Sukheshini Jadhav", "Prof. Aaditya Sharma", "Prof. Mayuri Padghan", "Prof. Yasin Basit", "Prof. Ketaki Deshpande", "Prof. Anuradha Bhusari"], afternoon: ["Prof. Ganga Dhole", "Dr. S. S. Dhamse", "Dr. Murhari Kele", "Dr. V. R. RatnpFarkhe", "Prof. Archan Agrawal", "Prof. V. A. Injamuri", "Prof. S. P. Vasekar"] },
+            { date: "03/12/2025", morning: ["Prof. Aarti Lohade", "Dr. Uttam Kalwane", "Prof. Divya Nagkirti", "Dr. Vikul Pawar", "Dr. S. S. Dhamse", "Prof. Jagruti Patil", "Prof. Kiran Sonkamble", "Prof. Hashmi Matiba"], afternoon: ["Prof. GangaDhole", "Dr. Murhari Kele", "Prof. Archan Agrawal", "Prof. Atul Chaudhari"] },
+            { date: "04/12/2025", morning: ["Dr. Vikul Pawar", "Dr. S. S. Dhamse", "Prof. J. Rana"], afternoon: [] }
+        ];
+
+        // This will be our main structured data
+        let dutyData = [];
+        let allNames = new Set();
+        let allDates = new Set();
+
+        // Correct typos in the data
+        const correctedData = rawScheduleData.map(d => {
+            const correctedAfternoon = d.afternoon.map(name => name === "Dr. V. R. RatnpFarkhe" ? "Dr. V. R. Ratnparkhe" : (name === "Prof. GangaDhole" ? "Prof. Ganga Dhole" : name));
+            return { ...d, afternoon: correctedAfternoon };
+        });
+
+
+        correctedData.forEach(d => {
+            allDates.add(d.date);
+            // Clean names and add to set
+            const cleanMorningNames = d.morning.map(name => name.trim().replace(/\n/g, ''));
+            const cleanAfternoonNames = d.afternoon.map(name => name.trim().replace(/\n/g, ''));
+
+            cleanMorningNames.forEach(name => allNames.add(name));
+            cleanAfternoonNames.forEach(name => allNames.add(name));
+            
+            if (cleanMorningNames.length > 0) {
+                dutyData.push({ date: d.date, session: "Morning", time: "10:00 AM", invigilators: cleanMorningNames });
+            }
+            if (cleanAfternoonNames.length > 0) {
+                dutyData.push({ date: d.date, session: "Afternoon", time: "2:00 PM", invigilators: cleanAfternoonNames });
+            }
+        });
+
+        const invigilatorNames = [...allNames].sort();
+        const examDates = [...allDates].sort((a, b) => {
+            if (typeof a !== 'string' || typeof b !== 'string') {
+                console.error('Invalid date string in sort:', a, b);
+                return 0;
+            }
+            const dateA = new Date(a.split('/').reverse().join('-'));
+            const dateB = new Date(b.split('/').reverse().join('-'));
+            return dateA - dateB;
+        });
+
+        /**
+         * Populate dropdowns on page load
+         */
+        function populateDropdowns() {
+            const nameSelect = document.getElementById('invigilator-select');
+            invigilatorNames.forEach(name => {
+                if(name) { // Avoid adding empty names
+                    const option = document.createElement('option');
+                    option.value = name;
+                    option.textContent = name;
+                    nameSelect.appendChild(option);
+                }
+            });
+
+            const dateSelect = document.getElementById('date-select');
+            // Add a default "select" option
+            const defaultOption = document.createElement('option');
+            defaultOption.value = "";
+            defaultOption.textContent = "-- Select a date --";
+            dateSelect.appendChild(defaultOption);
+
+            examDates.forEach(date => {
+                const option = document.createElement('option');
+                option.value = date;
+                option.textContent = date;
+                dateSelect.appendChild(option);
+            });
+        }
+
+
+        // --- Tab Navigation ---
+
+        function showTab(tabId) {
+            // Hide all tab content
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.add('hidden');
+            });
+            // Deactivate all tab buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            // Show the selected tab content
+            document.getElementById(tabId).classList.remove('hidden');
+            // Activate the selected tab button
+            document.querySelector(`.tab-btn[onclick="showTab('${tabId}')"]`).classList.add('active');
+        }
+
+
+        // --- "My Schedule" Tab Logic ---
+
+        function findMyDuties() {
+            const selectedName = document.getElementById('invigilator-select').value;
+            const container = document.getElementById('schedule-container');
+
+            if (!selectedName) {
+                container.innerHTML = `<p class="text-center text-red-500 text-lg p-6 bg-red-50 rounded-lg shadow-md">Please select your name from the list.</p>`;
+                return;
+            }
+
+            const myDuties = dutyData.filter(duty => duty.invigilators.includes(selectedName));
+            
+            // Sort duties by date and then session (Morning first)
+            myDuties.sort((a, b) => {
+                // Add guard clause to prevent crash on bad data
+                if (!a || !a.date || typeof a.date !== 'string' || !b || !b.date || typeof b.date !== 'string') {
+                    console.error('Invalid duty object in sort:', a, b);
+                    return 0; // Don't sort if data is bad
+                }
+                const dateA = new Date(a.date.split('/').reverse().join('-'));
+                const dateB = new Date(b.date.split('/').reverse().join('-'));
+                
+                if (dateA.getTime() !== dateB.getTime()) {
+                    return dateA - dateB;
+                }
+                
+                // If dates are same, sort by session (Morning before Afternoon)
+                return a.session === 'Morning' ? -1 : 1;
+            });
+
+            if (myDuties.length === 0) {
+                container.innerHTML = `<p class="text-center text-gray-500 text-lg p-6 bg-white rounded-lg shadow-md">No invigilation duties found for <strong>${selectedName}</strong>.</p>`;
+                return;
+            }
+
+            container.innerHTML = myDuties.map(duty => {
+                const sessionClass = duty.session === 'Morning' ? 'duty-session-morning' : 'duty-session-afternoon';
+                return `
+                <div class="duty-card">
+                    <div class="duty-card-header">
+                        <span class="duty-date">${duty.date}</span>
+                        <span class="${sessionClass}">${duty.session}</span>
+                    </div>
+                    <div class="flex flex-col md:flex-row justify-between items-center">
+                        <p class="duty-time mb-4 md:mb-0">
+                            Reporting Time: <strong class="text-gray-900">${duty.time}</strong>
+                        </p>
+                        <!-- "Download Calendar File" button -->
+                        <button class="btn-secondary" 
+                                onclick="downloadICS(this)"
+                                data-date="${duty.date}"
+                                data-time="${duty.time}"
+                                data-session="${duty.session}">
+                            Download Calendar File (.ics)
+                        </button>
+                    </div>
+                </div>
+            `}).join('');
+        }
+
+
+        // --- "Find by Session" Tab Logic ---
+
+        function findSessionInvigilators() {
+            const selectedDate = document.getElementById('date-select').value;
+            const selectedSession = document.getElementById('session-select').value;
+            const container = document.getElementById('session-invigilators-list');
+
+            if (!selectedDate) {
+                 container.innerHTML = `<p class="text-center text-red-500 text-lg">Please select a date first.</p>`;
+                 return;
+            }
+
+            const duty = dutyData.find(d => d.date === selectedDate && d.session === selectedSession);
+
+            if (!duty || duty.invigilators.length === 0) {
+                container.innerHTML = `<p class="text-center text-gray-500 text-lg">No invigilators found for <strong>${selectedSession}</strong> session on <strong>${selectedDate}</strong>.</p>`;
+                return;
+            }
+
+            const sessionClass = selectedSession === 'Morning' ? 'bg-blue-600' : 'bg-orange-600';
+            
+            container.innerHTML = `
+                <div class="${sessionClass} text-white p-4 rounded-t-lg">
+                    <h3 class="text-2xl font-bold">Invigilators for ${selectedDate} (${selectedSession})</h3>
+                </div>
+                <ol class="list-decimal list-inside bg-gray-50 p-6 rounded-b-lg space-y-2">
+                    ${duty.invigilators.map(name => `<li class="text-lg text-gray-800">${name}</li>`).join('\n')}
+                </ol>
+            `;
+        }
+
+
+        // --- iCalendar (.ics) File Generation Logic ---
+        
+        /**
+         * Formats a JavaScript Date object into an iCalendar-compatible UTC string (YYYYMMDDTHHmmSSZ).
+         */
+        function toICSFormat(date) {
+            return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+        }
+
+        /**
+         * Called by the "Download Calendar File" button.
+         * Generates and triggers the download of an .ics file.
+         */
+        function downloadICS(buttonElement) {
+            const duty = {
+                date: buttonElement.dataset.date,
+                time: buttonElement.dataset.time,
+                session: buttonElement.dataset.session
+            };
+
+            const eventTitle = `Invigilation Duty: ${duty.session} Session`;
+            
+            // --- Parse Date and Time ---
+            const [day, month, year] = duty.date.split('/');
+            const [timePart, ampm] = duty.time.split(' ');
+            let [hour, minute] = timePart.split(':');
+            
+            let numericHour = parseInt(hour);
+            
+            if (ampm === 'PM' && numericHour !== 12) {
+                numericHour += 12;
+            }
+            if (ampm === 'AM' && numericHour === 12) {
+                numericHour = 0; // 12 AM is 00:00
+            }
+
+            // Create a date object in the *local* timezone of the browser.
+            // Note: Month is 0-indexed for JavaScript's Date constructor.
+            const startDate = new Date(year, parseInt(month) - 1, day, numericHour, minute);
+            
+            // Assume 3-hour duration for the exam
+            const endDate = new Date(startDate.getTime() + (3 * 60 * 60 * 1000));
+            // --- End Date and Time Parsing ---
+
+            // Convert local dates to iCalendar UTC format
+            const startICS = toICSFormat(startDate);
+            const endICS = toICSFormat(endDate);
+            const stampICS = toICSFormat(new Date());
+
+            const icsContent = [
+                'BEGIN:VCALENDAR',
+                'VERSION:2.0',
+                'PRODID:-//InvigilationApp//ProfNitinPhadkule//EN',
+                'BEGIN:VEVENT',
+                'UID:' + stampICS + '@invigilation.app',
+                'DTSTAMP:' + stampICS,
+                'DTSTART:' + startICS,
+                'DTEND:' + endICS,
+                'SUMMARY:' + eventTitle,
+                'DESCRIPTION:Invigilation duty for ESE Nov-Dec 2025.',
+                'LOCATION:Examination Hall',
+                
+                // Reminder: 1 day before
+                'BEGIN:VALARM',
+                'TRIGGER:-P1D',
+                'ACTION:DISPLAY',
+                'DESCRIPTION:Reminder',
+                'END:VALARM',
+                
+                // Reminder: 1 hour before
+                'BEGIN:VALARM',
+                'TRIGGER:-PT1H',
+                'ACTION:DISPLAY',
+                'DESCRIPTION:Reminder',
+                'END:VALARM',
+                
+                'END:VEVENT',
+                'END:VCALENDAR'
+            ].join('\n'); // Use '\n' for new lines in .ics files
+
+            // Create a Blob and trigger download
+            const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `Invigilation_Duty_${year}_${month}_${day}.ics`;
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            showMessage('Calendar file (.ics) downloaded!');
+        }
+        
+        // --- Initial Load ---
+        window.onload = () => {
+            populateDropdowns();
+            // Automatically trigger finding invigilators when date/session changes
+            document.getElementById('date-select').addEventListener('change', findSessionInvigilators);
+            document.getElementById('session-select').addEventListener('change', findSessionInvigilators);
+        };
+
+    </script>
+</body>
+</html>
